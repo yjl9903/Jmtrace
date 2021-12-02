@@ -1,4 +1,8 @@
-import javassist.*
+import javassist.ClassPool
+import javassist.Loader
+import javassist.Modifier
+import javassist.Translator
+import java.util.jar.JarFile
 
 class TraceLoader(private val jar: String) {
   var verbose: Boolean = false
@@ -12,17 +16,26 @@ class TraceLoader(private val jar: String) {
     translator.verbose = verbose
     classLoader.addTranslator(classPool, translator)
 
-    val mainClass = "com.company.Main"
-    if (verbose) {
-      println("Main class: $mainClass")
-    }
+    val mainClass = getMainClass()
 
     classLoader.run(mainClass, args.toTypedArray())
+  }
+
+  private fun getMainClass(): String {
+    val jarFile = JarFile(jar)
+    val manifest = jarFile.manifest
+    val classname = manifest.mainAttributes.getValue("Main-Class")
+    if (verbose) {
+      println("Main class: $classname")
+    }
+    return classname
   }
 }
 
 class TraceTranslator : Translator {
   var verbose: Boolean = false
+
+  val exclude = listOf(ArrayConverter.Classname)
 
   override fun start(pool: ClassPool) {
     if (verbose) {
@@ -36,6 +49,11 @@ class TraceTranslator : Translator {
     }
 
     val ctClass = pool.get(classname)
+
+    if (exclude.contains(ctClass.name)) {
+      return
+    }
+
     for (method in ctClass.methods) {
       // Do not modify abstract or nativ class
       val modifiers = method.modifiers
@@ -44,9 +62,9 @@ class TraceTranslator : Translator {
           println("Method: ${method.longName}")
           method.insertAfter("{ System.out.println(\"Modified: ${method.longName}\"); }")
         }
-        val converter = TraceConverter()
-        // TODO: make convert here
-        method.instrument(converter)
+
+        val arrayConverter = ArrayConverter(pool)
+        method.instrument(arrayConverter)
       }
     }
 
@@ -54,8 +72,4 @@ class TraceTranslator : Translator {
       println("---------")
     }
   }
-}
-
-class TraceConverter : CodeConverter() {
-  var verbose: Boolean = false
 }
