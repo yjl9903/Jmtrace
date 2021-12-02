@@ -1,7 +1,4 @@
-import kotlinx.cli.ArgParser
-import kotlinx.cli.ArgType
-import kotlinx.cli.required
-import kotlinx.cli.vararg
+import kotlinx.cli.*
 
 fun main(cliArgs: Array<String>) {
   val parser = ArgParser("jmtrace")
@@ -10,11 +7,20 @@ fun main(cliArgs: Array<String>) {
     shortName = "jar",
     description = "Input jar package"
   ).required()
-  val args by parser.argument(ArgType.String).vararg()
+  val verbose by parser.option(
+    ArgType.Boolean,
+    shortName = "v",
+    description = "Verbose Log"
+  ).default(false)
+  val args by parser.argument(ArgType.String).optional().vararg()
 
   parser.parse(cliArgs)
 
-  println("Jar: $jar")
+  if (verbose) {
+    println("Jar: $jar")
+    println("Run: $args")
+  }
 
-  println("Run: $args")
+  val traceLoader = TraceLoader(jar)
+  traceLoader.run(args)
 }

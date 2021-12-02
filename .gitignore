@@ -1,5 +1,7 @@
 .idea
 
+examples
+
 # Gradle
 .gradle
 **/build/
