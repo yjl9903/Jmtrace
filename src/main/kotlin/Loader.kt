@@ -1,7 +1,7 @@
 import javassist.ClassPool
 import javassist.Loader
 
-class TraceLoader(val jar: String) {
+class TraceLoader(private val jar: String) {
   fun run(args: List<String>) {
     val classPool = ClassPool.getDefault()
     classPool.insertClassPath(jar)
