@@ -1,7 +1,20 @@
-fun main(args: Array<String>) {
-  println("Hello World!")
+import kotlinx.cli.ArgParser
+import kotlinx.cli.ArgType
+import kotlinx.cli.required
+import kotlinx.cli.vararg
 
-  // Try adding program arguments via Run/Debug configuration.
-  // Learn more about running applications: https://www.jetbrains.com/help/idea/running-applications.html.
-  println("Program arguments: ${args.joinToString()}")
+fun main(cliArgs: Array<String>) {
+  val parser = ArgParser("jmtrace")
+  val jar by parser.option(
+    ArgType.String,
+    shortName = "jar",
+    description = "Input jar package"
+  ).required()
+  val args by parser.argument(ArgType.String).vararg()
+
+  parser.parse(cliArgs)
+
+  println("Jar: $jar")
+
+  println("Run: $args")
 }
