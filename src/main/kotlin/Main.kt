@@ -22,5 +22,6 @@ fun main(cliArgs: Array<String>) {
   }
 
   val traceLoader = TraceLoader(jar)
+  traceLoader.verbose = verbose
   traceLoader.run(args)
 }
