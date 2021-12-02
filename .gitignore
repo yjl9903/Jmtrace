@@ -1,6 +1,6 @@
 .idea
 
-examples
+examples/*.jar
 
 # Gradle
 .gradle

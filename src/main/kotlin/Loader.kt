@@ -12,7 +12,7 @@ class TraceLoader(private val jar: String) {
     classPool.insertClassPath(jar)
     val classLoader = Loader(classPool)
 
-    val translator = TraceTranslator()
+    val translator = TraceTranslator(classPool)
     translator.verbose = verbose
     classLoader.addTranslator(classPool, translator)
 
@@ -32,10 +32,12 @@ class TraceLoader(private val jar: String) {
   }
 }
 
-class TraceTranslator : Translator {
+class TraceTranslator(pool: ClassPool) : Translator {
   var verbose: Boolean = false
 
-  val exclude = listOf(ArrayConverter.Classname)
+  private val arrayConverter = ArrayConverter(pool)
+
+  private val excludeClass = listOf(ArrayConverter.Classname)
 
   override fun start(pool: ClassPool) {
     if (verbose) {
@@ -50,7 +52,7 @@ class TraceTranslator : Translator {
 
     val ctClass = pool.get(classname)
 
-    if (exclude.contains(ctClass.name)) {
+    if (excludeClass.contains(ctClass.name)) {
       return
     }
 
@@ -63,7 +65,6 @@ class TraceTranslator : Translator {
           method.insertAfter("{ System.out.println(\"Modified: ${method.longName}\"); }")
         }
 
-        val arrayConverter = ArrayConverter(pool)
         method.instrument(arrayConverter)
       }
     }
