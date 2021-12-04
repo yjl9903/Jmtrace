@@ -57,7 +57,7 @@ class TraceTranslator(pool: ClassPool) : Translator {
     }
 
     for (method in ctClass.methods) {
-      // Do not modify abstract or nativ class
+      // Do not modify abstract or native class
       val modifiers = method.modifiers
       if (!Modifier.isAbstract(modifiers) && !Modifier.isNative(modifiers)) {
         if (verbose) {
