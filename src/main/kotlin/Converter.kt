@@ -1,7 +1,4 @@
-import javassist.ClassPool
-import javassist.CodeConverter
-import javassist.CtClass
-import javassist.CtMethod
+import javassist.*
 
 class ArrayConverter(classPool: ClassPool) : CodeConverter() {
   companion object {
@@ -92,5 +89,71 @@ class ArrayConverter(classPool: ClassPool) : CodeConverter() {
       methodNames.objectRead()))
     ctClass.addMethod(createWriteMethod("java.lang.Object",
       methodNames.objectWrite()))
+  }
+}
+
+class FieldConverter(private val classPool: ClassPool) {
+  companion object {
+    const val Classname = "__MTrace_Field__"
+  }
+
+  fun build(reader: Set<CtField>, writer: Set<CtField>) : CodeConverter {
+    val converter = CodeConverter()
+    reader.forEach { makeRead(converter, it); }
+    writer.forEach { makeWrite(converter, it); }
+    return converter
+  }
+
+  private val traceClass: MutableMap<CtClass, CtClass> = mutableMapOf()
+
+  private val traceFieldRead: MutableSet<CtField> = mutableSetOf()
+
+  private val traceFieldWrite: MutableSet<CtField> = mutableSetOf()
+
+  private fun getTraceClass(ctClass: CtClass): CtClass {
+    return traceClass.getOrPut(ctClass) {
+      val name = Classname + ctClass.name.replace('.', '_') + "__"
+      classPool.makeClass(name)
+    }
+  }
+
+  private fun makeRead(converter: CodeConverter, ctField: CtField) {
+    val traceClass = getTraceClass(ctField.declaringClass)
+    val methodName = "read_${ctField.name}"
+    if (!traceFieldRead.contains(ctField)) {
+      val methodBody = """
+        public static ${ctField.type.name} $methodName(java.lang.Object target) {
+          ${ctField.declaringClass.name} recv = (${ctField.declaringClass.name}) target;
+          long threadId = Thread.currentThread().getId();
+          String objId = Integer.toHexString(System.identityHashCode(target));
+          System.out.println("R " + threadId + " " + objId + " ${ctField.declaringClass.name}.${ctField.name}");
+          return recv.${ctField.name};
+        }
+      """.trimIndent()
+      val method = CtMethod.make(methodBody, traceClass)
+      traceClass.addMethod(method)
+      traceFieldRead.add(ctField)
+    }
+    converter.replaceFieldRead(ctField, traceClass, methodName)
+  }
+
+  private fun makeWrite(converter: CodeConverter, ctField: CtField) {
+    val traceClass = getTraceClass(ctField.declaringClass)
+    val methodName = "write_${ctField.name}"
+    if (!traceFieldWrite.contains(ctField)) {
+      val methodBody = """
+        public static void $methodName(java.lang.Object target, ${ctField.type.name} value) {
+          ${ctField.declaringClass.name} recv = (${ctField.declaringClass.name}) target;
+          long threadId = Thread.currentThread().getId();
+          String objId = Integer.toHexString(System.identityHashCode(target));
+          System.out.println("W " + threadId + " " + objId + " ${ctField.declaringClass.name}.${ctField.name}");
+          recv.${ctField.name} = value;
+        }
+      """.trimIndent()
+      val method = CtMethod.make(methodBody, traceClass)
+      traceClass.addMethod(method)
+      traceFieldWrite.add(ctField)
+    }
+    converter.replaceFieldWrite(ctField, traceClass, methodName)
   }
 }

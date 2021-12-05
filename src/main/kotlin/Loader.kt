@@ -1,7 +1,6 @@
-import javassist.ClassPool
-import javassist.Loader
-import javassist.Modifier
-import javassist.Translator
+import javassist.*
+import javassist.expr.ExprEditor
+import javassist.expr.FieldAccess
 import java.util.jar.JarFile
 
 class TraceLoader(private val jar: String) {
@@ -37,7 +36,18 @@ class TraceTranslator(pool: ClassPool) : Translator {
 
   private val arrayConverter = ArrayConverter(pool)
 
-  private val excludeClass = listOf(ArrayConverter.Classname)
+  private val fieldConverter = FieldConverter(pool)
+
+  private val excludeClass = listOf(ArrayConverter.Classname, FieldConverter.Classname)
+
+  private fun isExclude(ctClass: CtClass): Boolean {
+    for (excludeClass in excludeClass) {
+      if (ctClass.name.startsWith(excludeClass)) {
+        return true
+      }
+    }
+    return false
+  }
 
   override fun start(pool: ClassPool) {
     if (verbose) {
@@ -46,14 +56,14 @@ class TraceTranslator(pool: ClassPool) : Translator {
   }
 
   override fun onLoad(pool: ClassPool, classname: String) {
-    if (verbose) {
-      println("--- Load class $classname ---")
-    }
-
     val ctClass = pool.get(classname)
 
-    if (excludeClass.contains(ctClass.name)) {
+    if (isExclude(ctClass)) {
       return
+    }
+
+    if (verbose) {
+      println("--- Load class $classname ---")
     }
 
     for (method in ctClass.methods) {
@@ -66,6 +76,21 @@ class TraceTranslator(pool: ClassPool) : Translator {
         }
 
         method.instrument(arrayConverter)
+
+        val reader = HashSet<CtField>()
+        val writer = HashSet<CtField>()
+        method.instrument(object : ExprEditor() {
+          override fun edit(f: FieldAccess) {
+            if (f.isReader) {
+              reader.add(f.field)
+            } else if (f.isWriter) {
+              writer.add(f.field)
+            } else {
+              assert(false)
+            }
+          }
+        })
+        method.instrument(fieldConverter.build(reader, writer))
       }
     }
 
