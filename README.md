@@ -16,7 +16,7 @@ For Windows users, you can add `path\to\jmtrace\bin` to your PATH environment va
 Set-Alias -Name jmtrace -Value "path\to\jmtrace\bin\jmtrace.ps1"
 ```
 
-For Linux / MacOS users, you can `path/to/jmtrace/bin` direcotry to to your PATH environment variable.
+For Linux / macOS users, you can append `path/to/jmtrace/bin` directory to PATH environment variable in `.bashrc`.
 
 ## Usage
 
