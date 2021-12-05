@@ -4,6 +4,18 @@ Trace Java memory access.
 
 ## Installation
 
+Build Jmtrace.
+
+```bash
+.\gradlew build fatJar
+```
+
+For Windows users, you can add current directory in your PATH environment variable. Also, you can add the following config to your PowerShell `$PROFILE` file (like `.bashrc` in Linux). It will also register the command `jmtrace` globally.
+
+```powershell
+Set-Alias -Name jmtrace -Value "path\to\jmtrace\jmtrace.ps1"
+```
+
 ## Usage
 
 ```text
