@@ -10,9 +10,9 @@ fun main(cliArgs: Array<String>) {
   val verbose by parser.option(
     ArgType.Boolean,
     shortName = "v",
-    description = "Verbose Log"
+    description = "Enable verbose log"
   ).default(false)
-  val args by parser.argument(ArgType.String).optional().vararg()
+  val args by parser.argument(ArgType.String, description = "Args for running jar").optional().vararg()
 
   parser.parse(cliArgs)
 
