@@ -10,11 +10,13 @@ Build Jmtrace.
 .\gradlew build fatJar
 ```
 
-For Windows users, you can add current directory in your PATH environment variable. Also, you can add the following config to your PowerShell `$PROFILE` file (like `.bashrc` in Linux). It will also register the command `jmtrace` globally.
+For Windows users, you can add current directory to your PATH environment variable. Also, you can add the following config to your PowerShell `$PROFILE` file (like `.bashrc` in Linux). It will also register the command `jmtrace` globally.
 
 ```powershell
 Set-Alias -Name jmtrace -Value "path\to\jmtrace\jmtrace.ps1"
 ```
+
+For Linux / MacOS users, you can `path/to/jmtrace/bin` direcotry to to your PATH environment variable.
 
 ## Usage
 

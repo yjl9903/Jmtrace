@@ -1,0 +1,5 @@
+#!/bin/bash
+
+JAR_PATH=$(dirname "$0")/../build/libs/jmtrace-0.1.0-all.jar
+
+java -jar $JAR_PATH "$@"
