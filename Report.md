@@ -38,18 +38,18 @@ Generate read / write methods for each type of these 7 types of array. These gen
 // Handle read int array
 public static int read_int(java.lang.Object obj, int index) {
   long threadId = Thread.currentThread().getId();
-  String objId = Integer.toHexString(System.identityHashCode(obj));
-  System.out.println("R " + threadId + " " + objId + " int[" + index + "]");
-  int[] arr = (int[]) obj;
+    String objId=Integer.toHexString(System.identityHashCode(obj));
+    System.err.println("R "+threadId+" "+objId+" int["+index+"]");
+    int[]arr=(int[])obj;
   return arr[index];
 }
 
 // Handle write int array
 public static void write_int(java.lang.Object obj, int index, int value) {
   long threadId = Thread.currentThread().getId();
-  String objId = Integer.toHexString(System.identityHashCode(obj));
-  System.out.println("W " + threadId + " " + objId + " int[" + index + "]");
-  int[] arr = (int[]) obj;
+    String objId=Integer.toHexString(System.identityHashCode(obj));
+    System.err.println("W "+threadId+" "+objId+" int["+index+"]");
+    int[]arr=(int[])obj;
   arr[index] = value;
 }
 ```
@@ -65,19 +65,20 @@ Field access statements are a bit different from array access. Because we cannot
 public static ${type name} read_${field name}(java.lang.Object target) {
   ${declaring class name} recv = (${declaring class name}) target;
   long threadId = Thread.currentThread().getId();
-  String objId = Integer.toHexString(System.identityHashCode(target));
-  System.out.println("R " + threadId + " " + objId + " ${declaring class name}.${field name}");
-  return recv.${field name};
+    String objId=Integer.toHexString(System.identityHashCode(target));
+    System.err.println("R "+threadId+" "+objId+" ${declaring class name}.${field name}");
+    return recv.${field name};
 }
 
 // Write field
 public static void write_${filed name}(java.lang.Object target, ${type name} value) {
   ${declaring class name} recv = (${declaring class name}) target;
   long threadId = Thread.currentThread().getId();
-  String objId = Integer.toHexString(System.identityHashCode(target));
-  System.out.println("W " + threadId + " " + objId + " ${declaring class name}.${filed name}");
-  recv.${filed name} = value;
+    String objId=Integer.toHexString(System.identityHashCode(target));
+    System.err.println("W "+threadId+" "+objId+" ${declaring class name}.${filed name}");
+    recv.${filed name}=value;
 }
 ```
 
-Notice that the `${...}` will be replaced with concrete field information.
+Notice that the `${...}` will be replaced with concrete field information. In
+the real implementation, to hack private field, I use reflection instead.
