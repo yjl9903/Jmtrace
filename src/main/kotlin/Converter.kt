@@ -95,6 +95,16 @@ class ArrayConverter(classPool: ClassPool) : CodeConverter() {
 class FieldConverter(private val classPool: ClassPool) {
   companion object {
     const val Classname = "__MTrace_Field__"
+
+    private val PrimitiveMap = mapOf(
+      "boolean" to "Boolean",
+      "byte" to "Byte",
+      "char" to "Char",
+      "float" to "Float",
+      "double" to "Double",
+      "int" to "Int",
+      "long" to "Long"
+    )
   }
 
   fun build(reader: Set<CtField>, writer: Set<CtField>) : CodeConverter {
@@ -121,13 +131,20 @@ class FieldConverter(private val classPool: ClassPool) {
     val traceClass = getTraceClass(ctField.declaringClass)
     val methodName = "read_${ctField.name}"
     if (!traceFieldRead.contains(ctField)) {
+      val readField = if (ctField.type.isPrimitive) {
+        "field.get${PrimitiveMap[ctField.type.name]}(recv)"
+      } else {
+        "(${ctField.type.name}) field.get(recv)"
+      }
       val methodBody = """
         public static ${ctField.type.name} $methodName(java.lang.Object target) {
           ${ctField.declaringClass.name} recv = (${ctField.declaringClass.name}) target;
           long threadId = Thread.currentThread().getId();
           String objId = Integer.toHexString(System.identityHashCode(target));
           System.err.println("R " + threadId + " " + objId + " ${ctField.declaringClass.name}.${ctField.name}");
-          return recv.${ctField.name};
+          java.lang.reflect.Field field = ${ctField.declaringClass.name}.class.getDeclaredField("${ctField.name}");
+          field.setAccessible(true);
+          return $readField;
         }
       """.trimIndent()
       val method = CtMethod.make(methodBody, traceClass)
@@ -141,13 +158,20 @@ class FieldConverter(private val classPool: ClassPool) {
     val traceClass = getTraceClass(ctField.declaringClass)
     val methodName = "write_${ctField.name}"
     if (!traceFieldWrite.contains(ctField)) {
+      val setField = if (ctField.type.isPrimitive) {
+        "field.set${PrimitiveMap[ctField.type.name]}(recv, value)"
+      } else {
+        "field.set(recv, value)"
+      }
       val methodBody = """
         public static void $methodName(java.lang.Object target, ${ctField.type.name} value) {
           ${ctField.declaringClass.name} recv = (${ctField.declaringClass.name}) target;
           long threadId = Thread.currentThread().getId();
           String objId = Integer.toHexString(System.identityHashCode(target));
           System.err.println("W " + threadId + " " + objId + " ${ctField.declaringClass.name}.${ctField.name}");
-          recv.${ctField.name} = value;
+          java.lang.reflect.Field field = ${ctField.declaringClass.name}.class.getDeclaredField("${ctField.name}");
+          field.setAccessible(true);
+          $setField;
         }
       """.trimIndent()
       val method = CtMethod.make(methodBody, traceClass)
