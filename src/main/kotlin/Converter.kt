@@ -17,7 +17,7 @@ class ArrayConverter(classPool: ClassPool) : CodeConverter() {
         public static $type $method(java.lang.Object obj, int index) {
           long threadId = Thread.currentThread().getId();
           String objId = Integer.toHexString(System.identityHashCode(obj));
-          System.out.println("R " + threadId + " " + objId + " $type[" + index + "]");
+          System.err.println("R " + threadId + " " + objId + " $type[" + index + "]");
           $type[] arr = ($type []) obj;
           return arr[index];
         }
@@ -29,7 +29,7 @@ class ArrayConverter(classPool: ClassPool) : CodeConverter() {
         public static void $method(java.lang.Object obj, int index, $type value) {
           long threadId = Thread.currentThread().getId();
           String objId = Integer.toHexString(System.identityHashCode(obj));
-          System.out.println("W " + threadId + " " + objId + " $type[" + index + "]");
+          System.err.println("W " + threadId + " " + objId + " $type[" + index + "]");
           $type[] arr = ($type []) obj;
           arr[index] = value;
         }
@@ -42,11 +42,11 @@ class ArrayConverter(classPool: ClassPool) : CodeConverter() {
         String objId = Integer.toHexString(System.identityHashCode(obj));
         try {
           byte[] arr = (byte []) obj;
-          System.out.println("R " + threadId + " " + objId + " byte[" + index + "]");
+          System.err.println("R " + threadId + " " + objId + " byte[" + index + "]");
           return arr[index];
         } catch (Exception ex) {
           boolean[] arr = (boolean []) obj;
-          System.out.println("R " + threadId + " " + objId + " boolean[" + index + "]");
+          System.err.println("R " + threadId + " " + objId + " boolean[" + index + "]");
           return arr[index];
         }
       }
@@ -57,11 +57,11 @@ class ArrayConverter(classPool: ClassPool) : CodeConverter() {
           String objId = Integer.toHexString(System.identityHashCode(obj));
           try {
             byte[] arr = (byte []) obj;
-            System.out.println("W " + threadId + " " + objId + " byte[" + index + "]");
+            System.err.println("W " + threadId + " " + objId + " byte[" + index + "]");
             arr[index] = value;
           } catch (Exception ex) {
             boolean[] arr = (boolean []) obj;
-            System.out.println("W " + threadId + " " + objId + " boolean[" + index + "]");
+            System.err.println("W " + threadId + " " + objId + " boolean[" + index + "]");
             arr[index] = value > 0;
           }
         }
@@ -126,7 +126,7 @@ class FieldConverter(private val classPool: ClassPool) {
           ${ctField.declaringClass.name} recv = (${ctField.declaringClass.name}) target;
           long threadId = Thread.currentThread().getId();
           String objId = Integer.toHexString(System.identityHashCode(target));
-          System.out.println("R " + threadId + " " + objId + " ${ctField.declaringClass.name}.${ctField.name}");
+          System.err.println("R " + threadId + " " + objId + " ${ctField.declaringClass.name}.${ctField.name}");
           return recv.${ctField.name};
         }
       """.trimIndent()
@@ -146,7 +146,7 @@ class FieldConverter(private val classPool: ClassPool) {
           ${ctField.declaringClass.name} recv = (${ctField.declaringClass.name}) target;
           long threadId = Thread.currentThread().getId();
           String objId = Integer.toHexString(System.identityHashCode(target));
-          System.out.println("W " + threadId + " " + objId + " ${ctField.declaringClass.name}.${ctField.name}");
+          System.err.println("W " + threadId + " " + objId + " ${ctField.declaringClass.name}.${ctField.name}");
           recv.${ctField.name} = value;
         }
       """.trimIndent()
